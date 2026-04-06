@@ -23,6 +23,26 @@ def open_text_file(path: Path):
         return gzip.open(path, "rt", encoding="utf-8", errors="ignore")
     return open(path, "r", encoding="utf-8", errors="ignore")
 
+LOG_NAME_PATTERN = re.compile(
+    r'^stdout-(\d{4}-\d{2}-\d{2})\.(\d+)\.log(?:\.gz)?$'
+)
+
+
+def parse_log_sort_key(path: Path):
+    """
+    解析类似：
+      stdout-2026-04-06.28.log.gz
+      stdout-2026-04-06.28.log
+    返回排序 key: (date_str, seq_int, filename)
+    """
+    m = LOG_NAME_PATTERN.match(path.name)
+    if m:
+        date_str = m.group(1)
+        seq = int(m.group(2))
+        return (0, date_str, seq, path.name)
+
+    # 不匹配标准命名的文件放后面，按文件名排序
+    return (1, "", 0, path.name)
 
 def collect_input_files(input_dir: Path, include_latest_plain: bool = False) -> List[Path]:
     all_files = [p for p in input_dir.iterdir() if p.is_file()]
@@ -36,7 +56,7 @@ def collect_input_files(input_dir: Path, include_latest_plain: bool = False) -> 
         print(f"[INFO] 已忽略最新未压缩日志: {latest_plain.name}")
 
     files = gz_files + plain_files
-    files.sort(key=lambda p: (p.stat().st_mtime, p.name))
+    files.sort(key=parse_log_sort_key)
     return files
 
 
