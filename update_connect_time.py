@@ -12,7 +12,7 @@ CONFIG = {
     "output_root": r"./tron_monitor_output",
 
     # 要修改的已有 config.conf
-    "config_conf_path": r"~/java-tron-4.8/config.conf",
+    "config_conf_path": r"/root/java-tron-listen/config.conf",
 
     # 是否扫描 IP 输出
     "enable_ip_scan": True,
